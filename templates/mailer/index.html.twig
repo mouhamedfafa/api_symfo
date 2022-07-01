@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello MailerController!{% endblock %}
+
+{% block body %}
+{# templates/emails/signup.html.twig #}
+<h1>Welcome !</h1>
+
+    <a href="{{path('app_mailer')}}">Veuillez cliquer ici pour la confirmation de creation de compte</a>
+</p>
+{% endblock %}
