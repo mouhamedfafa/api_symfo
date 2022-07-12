@@ -23,13 +23,17 @@ class Complement
     #[ORM\Column(type: 'float')]
     private $prix;
 
-  
+    #[ORM\ManyToMany(targetEntity: Menu::class, mappedBy: 'complements')]
+    private $menus;
 
     public function __construct()
     {
         $this->menus = new ArrayCollection();
-        
     }
+
+
+  
+
 
     public function getId(): ?int
     {
@@ -59,6 +63,17 @@ class Complement
 
         return $this;
     }
+
+    /**
+     * @return Collection<int, Menu>
+     */
+    public function getMenus(): Collection
+    {
+        return $this->menus;
+    }
+
+    
+    
 
  
 

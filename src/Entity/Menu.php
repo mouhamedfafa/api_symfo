@@ -2,93 +2,106 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Core\Annotation\ApiResource;
-use App\Repository\MenuRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use App\Entity\Boisson;
+use App\Entity\Produit;
+use App\Service\Verify;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\MenuRepository;
+use Doctrine\Common\Collections\Collection;
+use ApiPlatform\Core\Annotation\ApiResource;
+use Symfony\Component\HttpFoundation\Response;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: MenuRepository::class)]
-#[ApiResource]
-class Menu
+
+#[ApiResource(
+    collectionOperations: [
+    "get" => [
+        'method' => 'get',
+        'status' => Response::HTTP_OK,
+        'normalization_context' => ['groups' => ['menu:read:simple']],
+    ],
+    "add" => [
+        'method' => 'Post',
+        "path" => "/add",
+        "controller" => MenuController::class,
+    ], 
+    "post" => [
+        // "access_control" => "is_granted('ROLE_GESTIONNAIRE')",
+        //"security_message"=>"Vous n'avez pas access à cette Ressource",
+        'method'=>'post',
+        'status' => Response::HTTP_CREATED,
+        'denormalization_context' => ['groups' => ['write:simplem',]],
+        'normalization_context' => ['groups' => ['menu:read:all']],
+        // 'input_formats' => [
+        //     'multipart' => ['multipart/form-data'],]
+    ]
+],
+itemOperations: ["put" => [
+    'method' => 'put',
+    // "security" => "is_granted('ROLE_GESTIONNAIRE')",
+    // "security_message"=>"Vous n'avez pas access à cette Ressource",
+    'status' => Response::HTTP_OK,
+], "get" => [
+    'method' => 'get',
+    "path" => "/menus/{id}",
+    'requirements' => ['id' => '\d+'],
+    'normalization_context' => ['groups' => ['all']],
+],]
+)]
+#[Assert\Callback([Verify::class, 'validate'])]
+
+class Menu extends Produit
 {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private $id;
-
-    #[ORM\Column(type: 'string', length: 255)]
-    private $nom;
-
-    #[ORM\Column(type:'float')]
-    private $prix;
-
-    #[ORM\Column(type: 'boolean')]
-    private $isEtat;
-
+   
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'menu')]
     private $user;
-
-    #[ORM\ManyToMany(targetEntity: Burger::class, inversedBy: 'menus')]
-    private $burgers;
-
-
-
-    #[ORM\ManyToMany(targetEntity: Produit::class, inversedBy: 'menus')]
-    private $produits;
-
-    #[ORM\ManyToMany(targetEntity: Boisson::class, inversedBy: 'menus')]
+    #[Groups(['menu:read:simple', 'write:simplem','write:allm'],)]
+    #[ORM\ManyToMany(targetEntity: Boisson::class, inversedBy: 'menus',cascade:["persist"])]
     private $boissons;
+
+    #[Groups(['menu:read:simple', 'write:simplem'])]
+    #[Assert\Valid]
+    #[Assert\NotBlank]
+    #[Assert\Count(
+        min: 1,
+        minMessage: 'You must specify at least one email',
+       
+    )]
+    #[ORM\OneToMany(mappedBy: 'menu', targetEntity: MenuBurger::class,cascade:["persist"])]
+    private $menuBurgers;
+
+    #[Groups(['menu:read:simple', 'write:simplem'])]
+    #[ORM\OneToMany(mappedBy: 'menu', targetEntity: MenuPortionFrite::class,cascade:["persist"])]
+    #[Assert\Valid]
+    private $menuPortionFrites;
+
+    #[Groups(['menu:read:simple', 'write:simplem'])]
+    // #[Assert\Valid]
+    #[ORM\OneToMany(mappedBy: 'menu', targetEntity: MenuTaille::class,cascade:["persist"])]
+    private $menuTailles;
+
+
+
+ 
+
 
     public function __construct()
     {
-        $this->burgers = new ArrayCollection();
         
-        $this->portionfrites = new ArrayCollection();
-        $this->produits = new ArrayCollection();
         $this->boissons = new ArrayCollection();
+        $this->menuBurgers = new ArrayCollection();
+        $this->menuPortionFrites = new ArrayCollection();
+        $this->menuTailles = new ArrayCollection();
+       
+        
+
+        
     }
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
-    public function getNom(): ?string
-    {
-        return $this->nom;
-    }
-
-    public function setNom(string $nom): self
-    {
-        $this->nom = $nom;
-
-        return $this;
-    }
-
-    public function getPrix(): ?string
-    {
-        return $this->prix;
-    }
-
-    public function setPrix(string $prix): self
-    {
-        $this->prix = $prix;
-
-        return $this;
-    }
-
-    public function isIsEtat(): ?bool
-    {
-        return $this->isEtat;
-    }
-
-    public function setIsEtat(bool $isEtat): self
-    {
-        $this->isEtat = $isEtat;
-
-        return $this;
-    }
+   
 
     public function getUser(): ?User
     {
@@ -96,61 +109,13 @@ class Menu
     }
 
     public function setUser(?User $user): self
-    {
+    {   
         $this->user = $user;
 
         return $this;
     }
 
-    /**
-     * @return Collection<int, Burger>
-     */
-    public function getBurgers(): Collection
-    {
-        return $this->burgers;
-    }
-
-    public function addBurger(Burger $burger): self
-    {
-        if (!$this->burgers->contains($burger)) {
-            $this->burgers[] = $burger;
-        }
-
-        return $this;
-    }
-
-    public function removeBurger(Burger $burger): self
-    {
-        $this->burgers->removeElement($burger);
-
-        return $this;
-    }
-
-
-    /**
-     * @return Collection<int, Produit>
-     */
-    public function getProduits(): Collection
-    {
-        return $this->produits;
-    }
-
-    public function addProduit(Produit $produit): self
-    {
-        if (!$this->produits->contains($produit)) {
-            $this->produits[] = $produit;
-        }
-
-        return $this;
-    }
-
-    public function removeProduit(Produit $produit): self
-    {
-        $this->produits->removeElement($produit);
-
-        return $this;
-    }
-
+  
     /**
      * @return Collection<int, Boisson>
      */
@@ -174,4 +139,104 @@ class Menu
 
         return $this;
     }
+
+    /**
+     * @return Collection<int, MenuBurger>
+     */
+    public function getMenuBurgers(): Collection
+    {
+        return $this->menuBurgers;
+    }
+
+    public function addMenuBurger(MenuBurger $menuBurger): self
+    {
+        if (!$this->menuBurgers->contains($menuBurger)) {
+            $this->menuBurgers[] = $menuBurger;
+            $menuBurger->setMenu($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMenuBurger(MenuBurger $menuBurger): self
+    {
+        if ($this->menuBurgers->removeElement($menuBurger)) {
+            // set the owning side to null (unless already changed)
+            if ($menuBurger->getMenu() === $this) {
+                $menuBurger->setMenu(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, MenuPortionFrite>
+     */
+    public function getMenuPortionFrites(): Collection
+    {
+        return $this->menuPortionFrites;
+    }
+
+    public function addMenuPortionFrite(MenuPortionFrite $menuPortionFrite): self
+    {
+        if (!$this->menuPortionFrites->contains($menuPortionFrite)) {
+            $this->menuPortionFrites[] = $menuPortionFrite;
+            $menuPortionFrite->setMenu($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMenuPortionFrite(MenuPortionFrite $menuPortionFrite): self
+    {
+        if ($this->menuPortionFrites->removeElement($menuPortionFrite)) {
+            // set the owning side to null (unless already changed)
+            if ($menuPortionFrite->getMenu() === $this) {
+                $menuPortionFrite->setMenu(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, MenuTaille>
+     */
+    public function getMenuTailles(): Collection
+    {
+        return $this->menuTailles;
+    }
+
+    public function addMenuTaille(MenuTaille $menuTaille): self
+    {
+        if (!$this->menuTailles->contains($menuTaille)) {
+            $this->menuTailles[] = $menuTaille;
+            $menuTaille->setMenu($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMenuTaille(MenuTaille $menuTaille): self
+    {
+        if ($this->menuTailles->removeElement($menuTaille)) {
+            // set the owning side to null (unless already changed)
+            if ($menuTaille->getMenu() === $this) {
+                $menuTaille->setMenu(null);
+            }
+        }
+
+        return $this;
+    }
+
+
+    
+
+   
+   
+
+   
+
+    
 }

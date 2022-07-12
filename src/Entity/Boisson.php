@@ -21,15 +21,17 @@ use Symfony\Component\Serializer\Annotation\Groups;
             'status' => Response::HTTP_OK,  
             'normalization_context' => ['groups' => ['boisson:read:simple']],
         ],
-        "add" => [
+        // "add" => [
+        //     'method' => 'Post',
+        //     "path" => "/add",
+        //     "controller" => BoissonController::class,
+        // ], 
+        "post" => [
             'method' => 'Post',
-            "path" => "/add",
-            "controller" => BoissonController::class,
-        ], "post" => [
             // "access_control" => "is_granted('ROLE_GESTIONNAIRE')",
             //"security_message"=>"Vous n'avez pas access à cette Ressource",
             'status' => Response::HTTP_CREATED,
-            'denormalization_context' => ['groups' => ['write:simple', 'write:all']],
+            'denormalization_context' => ['groups' => ['write:simpleboi', 'write:allboi']],
             'normalization_context' => ['groups' => ['boisson:read:all']],
         ]
     ],
@@ -49,111 +51,31 @@ use Symfony\Component\Serializer\Annotation\Groups;
 )]
 
 
-   class Boisson 
+   class Boisson extends Produit
 { 
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]  
-    #[Groups(['boisson:read:simple'])]
-    private $id;
-
+   
 
     // #[Groups(['boisson:read:simple', 'write:simple', 'write:all'])]
     // #[ORM\ManyToMany(targetEntity: Taille::class, mappedBy: 'boissons')]
     // private $tailles;
 
-    #[Groups(['boisson:read:simple', 'write:simple', 'write:all'])]
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private $nom;
-
-    #[Groups(['boisson:read:simple', 'write:simple', 'write:all'])]
-    #[ORM\Column(type: 'float', nullable: true)]
-    private $prix;
-
-    #[Groups(['boisson:read:simple', 'write:simple', 'write:all'])]
-    #[ORM\Column(type: 'boolean')]
-    private $isEtat;
-
-    #[Groups(['boisson:read:simple', 'write:simple', 'write:all'])]
-    #[ORM\ManyToMany(targetEntity: Taille::class, inversedBy: 'boissons')]
-    private $tailles;
+  
 
     #[ORM\ManyToMany(targetEntity: Menu::class, mappedBy: 'boissons')]
     private $menus;
 
+    #[ORM\ManyToMany(targetEntity: Taille::class, mappedBy: 'boissons')]
+    private $tailles;
+
     public function __construct()
     {
+        
         $this->tailles = new ArrayCollection();
-        $this->menus = new ArrayCollection();
     }
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
 
    
 
-    public function getNom(): ?string
-    {
-        return $this->nom;
-    }
 
-    public function setNom(string $nom): self
-    {
-        $this->nom = $nom;
-
-        return $this;
-    }
-
-    public function isIsEtat(): ?bool
-    {
-        return $this->isEtat;
-    }
-
-    public function setIsEtat(bool $isEtat): self
-    {
-        $this->isEtat = $isEtat;
-
-        return $this;
-    }
-
-    public function getPrix(): ?float
-    {
-        return $this->prix;
-    }
-
-    public function setPrix(?float $prix): self
-    {
-        $this->prix = $prix;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Taille>
-     */
-    public function getTailles(): Collection
-    {
-        return $this->tailles;
-    }
-
-    public function addTaille(Taille $taille): self
-    {
-        if (!$this->tailles->contains($taille)) {
-            $this->tailles[] = $taille;
-        }
-
-        return $this;
-    }
-
-    public function removeTaille(Taille $taille): self
-    {
-        $this->tailles->removeElement($taille);
-
-        return $this;
-    }
 
     /**
      * @return Collection<int, Menu>
@@ -177,6 +99,33 @@ use Symfony\Component\Serializer\Annotation\Groups;
     {
         if ($this->menus->removeElement($menu)) {
             $menu->removeBoisson($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Taille>
+     */
+    public function getTailles(): Collection
+    {
+        return $this->tailles;
+    }
+
+    public function addTaille(Taille $taille): self
+    {
+        if (!$this->tailles->contains($taille)) {
+            $this->tailles[] = $taille;
+            $taille->addBoisson($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTaille(Taille $taille): self
+    {
+        if ($this->tailles->removeElement($taille)) {
+            $taille->removeBoisson($this);
         }
 
         return $this;

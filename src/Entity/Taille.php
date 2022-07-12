@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Symfony\Component\HttpFoundation\Response;
 use Doctrine\Common\Collections\ArrayCollection;
+use phpDocumentor\Reflection\Types\Nullable;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: TailleRepository::class)]
@@ -28,16 +29,16 @@ use Symfony\Component\Serializer\Annotation\Groups;
  'denormalization_context' => ['groups' => ['write:simpletaille','write:alltaille']],
  'normalization_context' => ['groups' => ['taille:read:all']],]], 
  itemOperations:["put"=>[
-                'method' => 'put',
-                // "security" => "is_granted('ROLE_GESTIONNAIRE')",
-                // "security_message"=>"Vous n'avez pas access à cette Ressource",
-                'status' => Response::HTTP_OK,
-                ],"get"=>[
-                'method' => 'get',
-                "path"=>"/tailles/{id}",
-                'requirements' => ['id' => '\d+'],
-                'normalization_context' => ['groups' => ['all']],
-                ],])]
+                                                          'method' => 'put',
+                                                          // "security" => "is_granted('ROLE_GESTIONNAIRE')",
+                                                          // "security_message"=>"Vous n'avez pas access à cette Ressource",
+                                                          'status' => Response::HTTP_OK,
+                                                          ],"get"=>[
+                                                          'method' => 'get',
+                                                          "path"=>"/tailles/{id}",
+                                                          'requirements' => ['id' => '\d+'],
+                                                          'normalization_context' => ['groups' => ['all']],
+                                                          ],])]
 
 
 
@@ -45,24 +46,32 @@ class Taille
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[Groups(['taille:read:simple'])]
+    #[Groups(['taille:read:simple','write:simpletaille','write:simplem'])]
     #[ORM\Column(type: 'integer')]
     private $id;
 
-    #[Groups(['taille:read:simple','write:simpletaille','write:alltaille'])]
-    #[ORM\Column(type: 'string', length: 255)]
+    #[Groups(['taille:read:simple','write:simpletaille','write:alltaille','write:simplem'])]
+    #[ORM\Column(type: 'string', length: 255,nullable:true)]
     private $libelle;
 
-    #[ORM\ManyToMany(targetEntity: Boisson::class, mappedBy: 'tailles')]
+  
+    #[Groups(['taille:read:simple','write:simpletaille','write:alltaille','write:simplem'])]
+    #[ORM\Column(type: 'float')]
+    private $prix;
+
+    #[ORM\ManyToMany(targetEntity: Boisson::class, inversedBy: 'tailles')]
     private $boissons;
+
     
-    // #[Groups(['taille:read:simple','write:simple','write:all'])]
-    // #[ORM\Column(type: 'float')]
-    // private $prix;
+    #[ORM\OneToMany(mappedBy: 'taille', targetEntity: MenuTaille::class)]
+    private $menuTailles;
+
 
     public function __construct()
     {
         $this->boissons = new ArrayCollection();
+        $this->menuTailles = new ArrayCollection();
+       
     }
 
     public function getId(): ?int
@@ -106,7 +115,6 @@ class Taille
     {
         if (!$this->boissons->contains($boisson)) {
             $this->boissons[] = $boisson;
-            $boisson->addTaille($this);
         }
 
         return $this;
@@ -114,12 +122,43 @@ class Taille
 
     public function removeBoisson(Boisson $boisson): self
     {
-        if ($this->boissons->removeElement($boisson)) {
-            $boisson->removeTaille($this);
+        $this->boissons->removeElement($boisson);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, MenuTaille>
+     */
+    public function getMenuTailles(): Collection
+    {
+        return $this->menuTailles;
+    }
+
+    public function addMenuTaille(MenuTaille $menuTaille): self
+    {
+        if (!$this->menuTailles->contains($menuTaille)) {
+            $this->menuTailles[] = $menuTaille;
+            $menuTaille->setTaille($this);
         }
 
         return $this;
     }
+
+    public function removeMenuTaille(MenuTaille $menuTaille): self
+    {
+        if ($this->menuTailles->removeElement($menuTaille)) {
+            // set the owning side to null (unless already changed)
+            if ($menuTaille->getTaille() === $this) {
+                $menuTaille->setTaille(null);
+            }
+        }
+
+        return $this;
+    }
+
+   
+  
 
   
 }
