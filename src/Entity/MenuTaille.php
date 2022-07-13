@@ -50,7 +50,7 @@ class MenuTaille
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    #[Groups(['menumt:read:simple','write:simplem',])]
+    #[Groups(['menumt:read:simple','wri te:simplem',])]
     private $id;
 
     #[Groups(['menumt:read:simple','write:simplemt','write:simplem'])]
