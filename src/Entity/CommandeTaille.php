@@ -3,32 +3,34 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use App\Repository\MenuTailleRepository;
 use ApiPlatform\Core\Annotation\ApiResource;
+use App\Repository\CommandeTailleRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
-#[ORM\Entity(repositoryClass: MenuTailleRepository::class)]
+#[ORM\Entity(repositoryClass: CommandeTailleRepository::class)]
+
+
 #[ApiResource(
     collectionOperations: [
     "get" => [
         'method' => 'get',
         'status' => Response::HTTP_OK,
-        'normalization_context' => ['groups' => ['menumt:read:simple']],
+        'normalization_context' => ['groups' => ['comtaille:read:simple']],
     ],
-    "add" => [
-        'method' => 'Post',
-        "path" => "/add",
-        "controller" => MenuController::class,
-    ], 
+    // "add" => [
+    //     'method' => 'Post',
+    //     "path" => "/add",
+    //     "controller" => MenuController::class,
+    // ], 
     "post" => [
         // "access_control" => "is_granted('ROLE_GESTIONNAIRE')",
         //"security_message"=>"Vous n'avez pas access à cette Ressource",
         'method'=>'post',
         'status' => Response::HTTP_CREATED,
-        'denormalization_context' => ['groups' => ['write:simplemt', 'write:allmt']],
-        'normalization_context' => ['groups' => ['menu:read:all']],
+        'denormalization_context' => ['groups' => ['write:simplecomtail',]],
+        'normalization_context' => ['groups' => ['comtail:read:all']],
         // 'input_formats' => [
         //     'multipart' => ['multipart/form-data'],]
     ]
@@ -40,36 +42,29 @@ itemOperations: ["put" => [
     'status' => Response::HTTP_OK,
 ], "get" => [
     'method' => 'get',
-    "path" => "/menus/{id}",
+    "path" => "/commandeBurgers/{id}",
     'requirements' => ['id' => '\d+'],
-    'normalization_context' => ['groups' => ['all']],
+    'normalization_context' => ['groups' => ['allcomtail']],
 ],]
 )]
-
-class MenuTaille
+class CommandeTaille
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
+    #[Groups(['comtaille:read:simple','com:read:simple','allcom'])]
     #[ORM\Column(type: 'integer')]
-    #[Groups(['menumt:read:simple','write:simplem',])]
     private $id;
 
-    #[Groups(['menumt:read:simple','write:simplemt','write:simplem'])]
-    #[Assert\Positive(message:'veuillez indiquez une quantité superieur ou egale à 1')]
-    #[ORM\Column(type: 'integer',nullable:true)]
+    #[Groups(['comtaille:read:simple','allcom', 'write:simplecomtail','allcomtail','com:read:simple', 'write:simplecom','write:allcom'])]
+    #[ORM\Column(type: 'integer')]
+    #[Assert\Positive(message:'veuillez indiquez une quantité superieur ou egale à 1')]  
     private $quantite;
 
-    #[Groups(['menumt:read:simple','write:simplemt'])]
-    #[ORM\Column(type: 'float',nullable:true)]
-    private $prix;
+    #[ORM\ManyToOne(targetEntity: Commande::class, inversedBy: 'CommandeTaille')]
+    private $commande;
 
-    // #[Groups(['menumt:read:simple','write:simplemt','write:simplem'])]
-    #[ORM\ManyToOne(targetEntity: Menu::class, inversedBy: 'menuTailles')]
-    private $menu;
-
-
-    #[Groups(['menumt:read:simple','write:simplemt','write:simplem'])]
-    #[ORM\ManyToOne(targetEntity: Taille::class, inversedBy: 'menuTailles',cascade:["persist"])]
+    #[Groups(['comtaille:read:simple','allcom', 'write:simplecomtail','allcomtail','com:read:simple', 'write:simplecom','write:allcom'])]
+    #[ORM\ManyToOne(targetEntity: Taille::class, inversedBy: 'CommandeTailles',cascade:["persist"])]
     private $taille;
 
     public function getId(): ?int
@@ -89,26 +84,14 @@ class MenuTaille
         return $this;
     }
 
-    public function getPrix(): ?float
+    public function getCommande(): ?Commande
     {
-        return $this->prix;
+        return $this->commande;
     }
 
-    public function setPrix(float $prix): self
+    public function setCommande(?Commande $commande): self
     {
-        $this->prix = $prix;
-
-        return $this;
-    }
-
-    public function getMenu(): ?Menu
-    {
-        return $this->menu;
-    }
-
-    public function setMenu(?Menu $menu): self
-    {
-        $this->menu = $menu;
+        $this->commande = $commande;
 
         return $this;
     }

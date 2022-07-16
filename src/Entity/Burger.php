@@ -69,6 +69,9 @@ class Burger extends Produit
     #[ORM\OneToMany(mappedBy: 'burgers', targetEntity: MenuBurger::class)]
     private $menuBurgers;
 
+    #[ORM\OneToMany(mappedBy: 'burger', targetEntity: CommandeBurger::class)]
+    private $CommandeBurgers;
+
     
     //  #[Vich\UploadableField(mapping:"media_object", fileNameProperty:"filePath")]
     // #[Groups(['write:all'])]
@@ -82,6 +85,7 @@ class Burger extends Produit
     {
         $this->menus = new ArrayCollection();
         $this->menuBurgers = new ArrayCollection();
+        $this->CommandeBurgers = new ArrayCollection();
     }
 
   
@@ -136,6 +140,36 @@ class Burger extends Produit
             // set the owning side to null (unless already changed)
             if ($menuBurger->getBurgers() === $this) {
                 $menuBurger->setBurgers(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CommandeBurger>
+     */
+    public function getCommandeBurgers(): Collection
+    {
+        return $this->CommandeBurgers;
+    }
+
+    public function addCommandeBurger(CommandeBurger $commandeBurger): self
+    {
+        if (!$this->CommandeBurgers->contains($commandeBurger)) {
+            $this->CommandeBurgers[] = $commandeBurger;
+            $commandeBurger->setBurger($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCommandeBurger(CommandeBurger $commandeBurger): self
+    {
+        if ($this->CommandeBurgers->removeElement($commandeBurger)) {
+            // set the owning side to null (unless already changed)
+            if ($commandeBurger->getBurger() === $this) {
+                $commandeBurger->setBurger(null);
             }
         }
 

@@ -29,16 +29,16 @@ use Symfony\Component\Serializer\Annotation\Groups;
  'denormalization_context' => ['groups' => ['write:simpletaille','write:alltaille']],
  'normalization_context' => ['groups' => ['taille:read:all']],]], 
  itemOperations:["put"=>[
-                                                          'method' => 'put',
-                                                          // "security" => "is_granted('ROLE_GESTIONNAIRE')",
-                                                          // "security_message"=>"Vous n'avez pas access à cette Ressource",
-                                                          'status' => Response::HTTP_OK,
-                                                          ],"get"=>[
-                                                          'method' => 'get',
-                                                          "path"=>"/tailles/{id}",
-                                                          'requirements' => ['id' => '\d+'],
-                                                          'normalization_context' => ['groups' => ['all']],
-                                                          ],])]
+                                                                         'method' => 'put',
+                                                                         // "security" => "is_granted('ROLE_GESTIONNAIRE')",
+                                                                         // "security_message"=>"Vous n'avez pas access à cette Ressource",
+                                                                         'status' => Response::HTTP_OK,
+                                                                         ],"get"=>[
+                                                                         'method' => 'get',
+                                                                         "path"=>"/tailles/{id}",
+                                                                         'requirements' => ['id' => '\d+'],
+                                                                         'normalization_context' => ['groups' => ['all']],
+                                                                         ],])]
 
 
 
@@ -46,19 +46,20 @@ class Taille
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[Groups(['taille:read:simple','write:simpletaille','write:simplem'])]
+    #[Groups(['write:simplem','com:read:simple','write:allcom','write:simplecom'])]
     #[ORM\Column(type: 'integer')]
     private $id;
 
-    #[Groups(['taille:read:simple','write:simpletaille','write:alltaille','write:simplem'])]
+    #[Groups(['taille:read:simple','write:simpletaille','write:alltaille'])]
     #[ORM\Column(type: 'string', length: 255,nullable:true)]
     private $libelle;
 
   
-    #[Groups(['taille:read:simple','write:simpletaille','write:alltaille','write:simplem'])]
-    #[ORM\Column(type: 'float')]
+    #[Groups(['taille:read:simple','write:simpletaille','write:alltaille'])]
+    #[ORM\Column(type: 'float',nullable:true)]
     private $prix;
 
+    #[Groups(['com:read:simple', 'write:simplecom','write:allcom','write:simplem'])]
     #[ORM\ManyToMany(targetEntity: Boisson::class, inversedBy: 'tailles')]
     private $boissons;
 
@@ -66,11 +67,15 @@ class Taille
     #[ORM\OneToMany(mappedBy: 'taille', targetEntity: MenuTaille::class)]
     private $menuTailles;
 
+    #[ORM\OneToMany(mappedBy: 'taille', targetEntity: CommandeTaille::class)]
+    private $CommandeTailles;
+
 
     public function __construct()
     {
         $this->boissons = new ArrayCollection();
         $this->menuTailles = new ArrayCollection();
+        $this->CommandeTailles = new ArrayCollection();
        
     }
 
@@ -151,6 +156,36 @@ class Taille
             // set the owning side to null (unless already changed)
             if ($menuTaille->getTaille() === $this) {
                 $menuTaille->setTaille(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CommandeTaille>
+     */
+    public function getCommandeTailles(): Collection
+    {
+        return $this->CommandeTailles;
+    }
+
+    public function addCommandeTaille(CommandeTaille $commandeTaille): self
+    {
+        if (!$this->CommandeTailles->contains($commandeTaille)) {
+            $this->CommandeTailles[] = $commandeTaille;
+            $commandeTaille->setTaille($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCommandeTaille(CommandeTaille $commandeTaille): self
+    {
+        if ($this->CommandeTailles->removeElement($commandeTaille)) {
+            // set the owning side to null (unless already changed)
+            if ($commandeTaille->getTaille() === $this) {
+                $commandeTaille->setTaille(null);
             }
         }
 

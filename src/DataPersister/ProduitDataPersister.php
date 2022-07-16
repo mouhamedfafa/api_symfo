@@ -69,7 +69,7 @@ class ProduitDataPersister implements DataPersisterInterface
         if ($data instanceof Menu) {    
             foreach ($data->getMenuBurgers() as $burgers) {
                 $this->prix += $burgers->getBurgers()->getPrix();
-                dd($this->prix);
+                // dd($this->prix);
             }
             foreach ($data->getMenuPortionFrites() as $portionfrite) {
                 $this->prix += $portionfrite->getPortionFrite()->getPrix();
@@ -80,7 +80,7 @@ class ProduitDataPersister implements DataPersisterInterface
                     $this->prix += $taille->getTaille()->getPrix();
             }
             $data->setPrix($this->prix);
-        }
+        }   
         $this->_entityManager->persist($data);
         $this->_entityManager->flush();
     }

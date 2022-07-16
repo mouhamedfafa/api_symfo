@@ -23,11 +23,11 @@ use Symfony\Component\Validator\Constraints as Assert;
         'status' => Response::HTTP_OK,
         'normalization_context' => ['groups' => ['menu:read:simple']],
     ],
-    "add" => [
-        'method' => 'Post',
-        "path" => "/add",
-        "controller" => MenuController::class,
-    ], 
+    // "add" => [
+    //     'method' => 'Post',
+    //     "path" => "/add",
+    //     "controller" => MenuController::class,
+    // ], 
     "post" => [
         // "access_control" => "is_granted('ROLE_GESTIONNAIRE')",
         //"security_message"=>"Vous n'avez pas access à cette Ressource",
@@ -46,7 +46,7 @@ itemOperations: ["put" => [
     'status' => Response::HTTP_OK,
 ], "get" => [
     'method' => 'get',
-    "path" => "/menus/{id}",
+    "path" => "/menu/{id}",
     'requirements' => ['id' => '\d+'],
     'normalization_context' => ['groups' => ['all']],
 ],]
@@ -63,25 +63,22 @@ class Menu extends Produit
     private $boissons;
 
     #[Groups(['menu:read:simple', 'write:simplem'])]
-    #[Assert\Valid]
-    #[Assert\NotBlank]
-    #[Assert\Count(
-        min: 1,
-        minMessage: 'You must specify at least one email',
-       
-    )]
     #[ORM\OneToMany(mappedBy: 'menu', targetEntity: MenuBurger::class,cascade:["persist"])]
+    #[Assert\NotBlank(message:'burger est obligatoire')]
+    #[Assert\Valid]
     private $menuBurgers;
 
     #[Groups(['menu:read:simple', 'write:simplem'])]
     #[ORM\OneToMany(mappedBy: 'menu', targetEntity: MenuPortionFrite::class,cascade:["persist"])]
-    #[Assert\Valid]
     private $menuPortionFrites;
 
     #[Groups(['menu:read:simple', 'write:simplem'])]
-    // #[Assert\Valid]
+    #[Assert\Valid]
     #[ORM\OneToMany(mappedBy: 'menu', targetEntity: MenuTaille::class,cascade:["persist"])]
     private $menuTailles;
+
+    #[ORM\OneToMany(mappedBy: 'menu', targetEntity: CommandeMenu::class)]
+    private $CommandeMenus;
 
 
 
@@ -95,6 +92,7 @@ class Menu extends Produit
         $this->menuBurgers = new ArrayCollection();
         $this->menuPortionFrites = new ArrayCollection();
         $this->menuTailles = new ArrayCollection();
+        $this->CommandeMenus = new ArrayCollection();
        
         
 
@@ -224,6 +222,36 @@ class Menu extends Produit
             // set the owning side to null (unless already changed)
             if ($menuTaille->getMenu() === $this) {
                 $menuTaille->setMenu(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CommandeMenu>
+     */
+    public function getCommandeMenus(): Collection
+    {
+        return $this->CommandeMenus;
+    }
+
+    public function addCommandeMenu(CommandeMenu $commandeMenu): self
+    {
+        if (!$this->CommandeMenus->contains($commandeMenu)) {
+            $this->CommandeMenus[] = $commandeMenu;
+            $commandeMenu->setMenu($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCommandeMenu(CommandeMenu $commandeMenu): self
+    {
+        if ($this->CommandeMenus->removeElement($commandeMenu)) {
+            // set the owning side to null (unless already changed)
+            if ($commandeMenu->getMenu() === $this) {
+                $commandeMenu->setMenu(null);
             }
         }
 

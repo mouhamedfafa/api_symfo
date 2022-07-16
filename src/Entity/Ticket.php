@@ -2,25 +2,48 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Core\Annotation\ApiResource;
-use App\Repository\TicketRepository;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\TicketRepository;
+use ApiPlatform\Core\Annotation\ApiResource;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: TicketRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    collectionOperations: [
+    "get" => [
+        'method' => 'get',
+        'status' => Response::HTTP_OK,
+        'normalization_context' => ['groups' => ['ticket:read:simple']],
+    ],
+ 
+],
+itemOperations: ["put" => [
+  
+], "get" => [
+    'method' => 'get',
+    "path" => "/commandes/{id}",
+    'requirements' => ['id' => '\d+'],
+    'normalization_context' => ['groups' => ['alltick']],
+],]
+)]
+
 class Ticket
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private $id;
-
+    
+    #[Groups(['ticket:read:simple','alltick'],)]
     #[ORM\Column(type: 'date')]
     private $dateTicket;
 
+    #[Groups(['ticket:read:simple','alltick'],)]
     #[ORM\Column(type: 'string', length: 255)]
     private $reference;
 
+    #[Groups(['ticket:read:simple','alltick'],)]
     #[ORM\Column(type: 'integer')]
     private $numero;
 
@@ -64,4 +87,6 @@ class Ticket
 
         return $this;
     }
+
+    
 }

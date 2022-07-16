@@ -53,6 +53,7 @@ class MenuBurger
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[Groups(['menub:read:simple','write:simplem'])]
+    
     #[ORM\Column(type: 'integer')]
     private $id;
 
@@ -60,8 +61,7 @@ class MenuBurger
     #[Groups(['menuBurger:read:simple','write:simplemBurger', 'write:allmBurger','write:simplem'])]
     #[ORM\Column(type: 'integer')]
     #[Assert\NotBlank]
-    #[Assert\Positive(message:"la quantite doit etre superieur a zero")]
-
+    #[Assert\Positive(message:'veuillez indiquez une quantité superieur ou egale à 1')]
     private $quantite;
 
     #[Groups(['menuBurger:read:simple','write:simplemBurger', 'write:allmBurger'])]
@@ -74,7 +74,8 @@ class MenuBurger
 
     #[Groups(['menuBurger:read:simple','write:simplemBurger', 'write:allmBurger','write:simplem'])]
     #[ORM\ManyToOne(targetEntity: Burger::class, inversedBy: 'menuBurgers',cascade:["persist"])]
-    #[Assert\NotBlank]
+    #[Assert\Valid]
+    // #[Assert\NotBlank]
     private $burgers;
 
    

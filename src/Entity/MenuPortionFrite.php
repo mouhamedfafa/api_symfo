@@ -7,6 +7,7 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use App\Repository\MenuPortionFriteRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: MenuPortionFriteRepository::class)]
 
@@ -58,9 +59,11 @@ class MenuPortionFrite
 
     #[Groups(['menumpf:read:simple','write:simplempf', 'write:allpf','write:simplem'])]
     #[ORM\Column(type: 'integer',nullable:true)]
+    // #[Assert\NotBlank]
+    #[Assert\Positive(message:'veuillez indiquez une quantité superieur ou egale à 1')]
     private $quantite;
 
-    #[Groups(['menumpf:read:simple','write:simplempf', 'write:allpf','write:simplem'])]
+    #[Groups(['menumpf:read:simple','write:simplempf', 'write:allpf'])]
     #[ORM\Column(type: 'float',nullable:true)]
     private $prix;
 
@@ -69,6 +72,7 @@ class MenuPortionFrite
     private $menu;
 
     #[Groups(['menumpf:read:simple','write:simplempf', 'write:allmpf','write:simplem'])]
+    #[Assert\Positive(message:'veuillez indiquez une quantité superieur ou egale à 1')]
     #[ORM\ManyToOne(targetEntity: PortionFrite::class, inversedBy: 'menuPortionFrites',cascade:["persist"])]
     private $portionFrite;
 

@@ -2,30 +2,72 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Core\Annotation\ApiResource;
-use App\Repository\ZoneRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\ZoneRepository;
+use Doctrine\Common\Collections\Collection;
+use ApiPlatform\Core\Annotation\ApiResource;
+use Symfony\Component\HttpFoundation\Response;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
+
 
 #[ORM\Entity(repositoryClass: ZoneRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    collectionOperations: [
+    "get" => [
+        'method' => 'get',
+        'status' => Response::HTTP_OK,
+        'normalization_context' => ['groups' => ['zone:read:simple']],
+    ],
+    
+     "post" => [
+        // "access_control" => "is_granted('ROLE_GESTIONNAIRE')",
+        //"security_message"=>"Vous n'avez pas access à cette Ressource",
+        'method' => 'Post',
+        'status' => Response::HTTP_CREATED,
+        'denormalization_context' => ['groups' => ['write:simplez', 'write:allz']],
+        'normalization_context' => ['groups' => ['zone:read:all']],
+        // 'input_formats' => [
+        //     'multipart' => ['multipart/form-data'],]
+    ]
+],
+itemOperations: ["put" => [
+    'method' => 'put',
+    // "security" => "is_granted('ROLE_GESTIONNAIRE')",
+    // "security_message"=>"Vous n'avez pas access à cette Ressource",
+    'status' => Response::HTTP_OK,
+], "get" => [
+    'method' => 'get',
+    "path" => "/zones/{id}",
+    'requirements' => ['id' => '\d+'],
+    'normalization_context' => ['groups' => ['allz']],
+],]
+)]
+
+
+
 class Zone
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
+    #[Groups(['zone:read:simple','write:simplecom','allcom'])]
     #[ORM\Column(type: 'integer')]
     private $id;
 
+    #[Groups(['zone:read:simple','write:simplez','allz'])]
     #[ORM\Column(type: 'string', length: 255)]
     private $nom;
 
+    #[Groups(['zone:read:simple','write:simplez','allz','com:read:simple','allcom'])]
     #[ORM\Column(type: 'string', length: 255)]
     private $prixzone;
 
     #[ORM\OneToMany(mappedBy: 'zone', targetEntity: Commande::class)]
     private $commandes;
 
+    #[Assert\Unique]
+    #[Groups(['zone:read:simple','write:simplez','allz',])]
     #[ORM\OneToMany(mappedBy: 'zone', targetEntity: Quartier::class)]
     private $quartiers;
 

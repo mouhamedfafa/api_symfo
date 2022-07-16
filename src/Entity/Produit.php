@@ -55,23 +55,26 @@ use Symfony\Component\Serializer\Annotation\SerializedName;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    #[Groups(['produit:read:simple','write:simpleb', 'write:allb','write:simplepf', 'write:allpf'])]
+    #[Groups(['produit:read:simple','write:simplecom','write:simpleb', 'write:allb','write:simplepf', 'write:allpf','write:simplem'])]
     private $id;
 
     // #[Groups(['produit:read:simple','write:simple','write:all'])]
     // #[ORM\Column(type: 'string', length: 255)]
     // private $image;
 
-    #[Groups(['produit:read:simple','write:simplep','write:allp','write:simplepf', 'write:allpf','write:simpleb', 'write:allb', 'write:simplem','write:allm','write:simpleboi', 'write:allboi','boisson:read:simple'])]
+    #[Groups(['produit:read:simple','write:simplep','write:allp','write:simplepf', 'write:allpf','write:simpleb', 'write:allb', 'write:simplem','write:allm','write:simpleboi', 'write:allboi','boisson:read:simple','pc:read:simple', 'write:simplepc','write:allpc','com:read:simple'])]
     #[ORM\Column(type: 'string', length: 255,nullable:true)]
-    private $nom;
+    #[Assert\NotBlank(message:'le nom est obligatoire')]
+    // #[Assert\Type('string', message: 'The value {{ value }} is not a valid {{ type }}.',)]
+    private $nom;  
 
   
-    #[Groups(['produit:read:simple','write:simplep','write:allp','write:simplepf', 'write:allpf','write:simpleb', 'write:allb', 'write:simplem','write:allm','boisson:read:simple'])]
+    #[Groups(['produit:read:simple','write:simplep','write:allp','write:simplepf', 'write:allpf','write:simpleb', 'write:allb','write:allm','boisson:read:simple','pc:read:simple', 'write:simplepc','write:allpc','com:read:simple'])]
     #[ORM\Column(type: 'float',nullable:true)]
+    #[Assert\Positive(message:'le prix est obligatoire')]
     private $prix;
 
-    #[Groups(['produit:read:simple','write:simplep','write:allp','write:simplepf', 'write:allpf','write:simpleb', 'write:allb', 'write:simplem','write:allm','write:simpleboi', 'write:allboi','boisson:read:simple'])]
+    #[Groups(['produit:read:simple','write:simplep','write:allp','write:simplepf', 'write:allpf','write:simpleb', 'write:allb', 'write:simplem','write:allm','write:simpleboi', 'write:allboi','boisson:read:simple','pc:read:simple', 'write:simplepc','write:allpc'])]
     #[ORM\Column(type: 'boolean',nullable:true)]
     private $isEtat;
 
@@ -84,11 +87,23 @@ use Symfony\Component\Serializer\Annotation\SerializedName;
 
     // #[Groups(['produit:read:simple','write:simplep','write:allp','write:simplepf', 'write:allpf','write:simpleb', 'write:allb', 'write:simplem','write:allm','write:simpleboi', 'write:allboi','boisson:read:simple'])]
     #[SerializedName("images")]
+    #[Assert\Image(
+        minWidth: 200,
+        maxWidth: 500,
+        minHeight: 200,
+        maxHeight: 400,
+        minWidthMessage:'largeur minimale 200 pixels',
+        minHeightMessage:'hauteur minimale 200 pixels',
+        maxHeightMessage:'hauteur maximale 400 pixels',
+        maxWidthMessage:'largeur maxmale 400 pixels',
+        maxSize: '102k',
+        maxSizeMessage:'la taille ne doit pas depasser 100ko'
+        
+    )]
     #[Groups(['produit:read:simple','write:simplep','write:allp','write:simplepf', 'write:allpf','write:simpleb', 'write:allb', 'write:simplem','write:allm','write:simpleboi', 'write:allboi','boisson:read:simple'])]
     private string $imagefile;
 
-    #[ORM\ManyToOne(targetEntity: ProduitCommande::class, inversedBy: 'produits')]
-    private $produitCommades;
+  
 
     public function getId(): ?int
     {
@@ -184,23 +199,5 @@ use Symfony\Component\Serializer\Annotation\SerializedName;
 
   
 
-    /**
-     * Get the value of produitCommades
-     */ 
-    public function getProduitCommades()
-    {
-        return $this->produitCommades;
-    }
-
-    /**
-     * Set the value of produitCommades
-     *
-     * @return  self
-     */ 
-    public function setProduitCommades($produitCommades)
-    {
-        $this->produitCommades = $produitCommades;
-
-        return $this;
-    }
+   
 }

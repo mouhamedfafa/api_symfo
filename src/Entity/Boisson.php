@@ -50,7 +50,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 )]
 
-
+    
    class Boisson extends Produit
 { 
    
